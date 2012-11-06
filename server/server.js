@@ -23,11 +23,26 @@ var updateGame = (function() {
 io.sockets.on('connection', function (socket) {
     // Socket will be a given client. This closure is a nice way of wrapping up functionality for an individual
     // connection.
+
+    // Some functions are called on a delay. If the connection's closed by the time they are called,
+    // errors will occur. So, we use this wrapper to handle the connection closing
+    var connected = true;
+    var allTimers = [];
+    var validConnectionTimer = function(f, time){
+        var validConnectionFunc = function() {
+            return function() {
+                if(connected === true) { f(); }
+                else { console.log(time); }
+            };
+        };        
+        var tt = setInterval(validConnectionFunc(f), time);
+        allTimers.push(tt);
+    };
   
     // Start the match on the first connection.
     if(match.started === false) {
         match.started = true;
-        setInterval(updateGame, 50);
+        setInterval(updateGame, 50);    // Don't use the valid connection wrapper here because this should happen regardless
     }
     
     socket.emit('welcome', {});
@@ -47,9 +62,12 @@ io.sockets.on('connection', function (socket) {
         socket.emit('state', state);
     };
     
-    setInterval(sendGameState, 100);
+    validConnectionTimer(sendGameState, 100);
 
     socket.on('intro', function(data) {
+        while(players[data.name] !== undefined) {
+            data.name += "_";
+        }
         var player = new game.Player(data.name);
         player.ping = 1000;
 
@@ -65,7 +83,7 @@ io.sockets.on('connection', function (socket) {
             socket.emit('ping', {});
         };        
         
-        setInterval(ping, 2000);
+        validConnectionTimer(ping, 2000);
         ping();        
 
         players[player.name] = player;
@@ -82,6 +100,16 @@ io.sockets.on('connection', function (socket) {
             
         });
         
+        socket.on('disconnect', function() {
+            player.avatar.team.numPlayers -= 1; // TODO: also fix spawns
+            delete players[player.name];
+            connected = false;
+            // Clear all the timers
+            for(var i = allTimers.length - 1; i >= 0; i--) {
+                clearInterval(allTimers[i]);
+            }
+        });
+
     });
-    
+
 });

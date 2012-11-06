@@ -34,7 +34,8 @@ var net = (function() {
             // The current state of all the objects and such
             socket.on('state', function (data) {
                 if(match === undefined) { return; } // Bail if we got this before match data.
-                for(var name in data.players) {
+                var name;
+                for(name in data.players) {
                     if(players[name] === undefined) {
                         players[name] = new Player(name);
                     }
@@ -56,6 +57,11 @@ var net = (function() {
                         }
                         players[name].ping = data.players[name].ping;
                         players[name].avatar.serverPosition = data.players[name].avatar.position;
+                    }
+                }
+                for(name in players) {
+                    if(data.players[name] === undefined) {
+                        players[name].deleteMe = true;
                     }
                 }
             });

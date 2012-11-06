@@ -27,23 +27,33 @@ jam.includeModule("Debug");
             if(jam.Input.justReleased("DOWN")) { net.sendInput("DOWN", false); }
             if(jam.Input.justPressed("X")) { net.sendInput("JUMP", true); }
             
-            var makePlayer = function(p) {
-                if(p.avatar !== undefined && p.avatar.sprite === undefined) {
-                    var spr = jam.Sprite(50,50);
-                    p.avatar.sprite = spr;
-                    spr.setImage("images/superballtrail.png");
-                    spr.update = jam.extend(spr.update, function(dt){
-                        if(p.avatar.netUpdate !== undefined) { p.avatar.netUpdate(dt); }
-                        spr.x = p.avatar.body.position.x / 25 * 320;
-                        spr.y = p.avatar.body.position.y / 15 * 200 - p.avatar.body.position.z * 2;
-                    });
-                    game.add(spr);
-                    spr.setLayer(1);
+            var playerStateUpdate = function(p) {
+                if(p.avatar !== undefined) {
+                    if(p.avatar.sprite === undefined){
+                        var spr = jam.Sprite(50,50);
+                        p.avatar.sprite = spr;
+                        spr.setImage("images/superballtrail.png");
+                        spr.update = jam.extend(spr.update, function(dt){
+                            if(p.avatar.netUpdate !== undefined) { p.avatar.netUpdate(dt); }
+                            spr.x = p.avatar.body.position.x / 25 * 320;
+                            spr.y = p.avatar.body.position.y / 15 * 200 - p.avatar.body.position.z * 2;
+                        });
+                        game.add(spr);
+                        spr.setLayer(1);
+                    }
                 }
             };
             
             for(var name in players) {
-                makePlayer(players[name]);
+                if(players[name].deleteMe !== undefined) {
+                    if(players[name].avatar !== undefined) {
+                        game.remove(players[name].avatar.sprite);
+                    }
+                    delete players[name];
+                }
+                else {
+                    playerStateUpdate(players[name]);
+                }
             }
             
         }, game.update);

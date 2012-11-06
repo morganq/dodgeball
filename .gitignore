@@ -161,3 +161,11 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+#for this in particular
+client.js
+server.js
+shared.js
+client.min.js
+server.min.js
+shared.min.js

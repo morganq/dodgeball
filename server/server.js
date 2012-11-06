@@ -1,5 +1,6 @@
 var game = require('./shared.js');
-var io = require('socket.io').listen(333);
+var port = (process.argv.length > 2) ? +process.argv[2] : 3333;
+var io = require('socket.io').listen(port);
 io.set('log level', 1);
 
 var players = {};

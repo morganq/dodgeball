@@ -2,6 +2,7 @@ var client;
 var match;
 var players;
 var me;
+var config = {host:'localhost', port:3333};
 
 var net = (function() {
     $(document).ready(function(){
@@ -9,7 +10,7 @@ var net = (function() {
         $("#connect").click(function() {
             $("#connectDiv").hide();
             $("#joinDiv").show();        
-            socket = io.connect('http://localhost:333');
+            socket = io.connect('http://' + config.host + ':' + config.port);
             client.start();
             socket.on('welcome', function (data) {
                 socket.emit('intro', { name: $("#name").val() });
